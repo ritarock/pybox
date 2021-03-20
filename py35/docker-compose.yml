@@ -1,0 +1,8 @@
+version: '3'
+services:
+  runner:
+    image: python:3.5-buster
+    working_dir: /work
+    volumes:
+      - ../sandbox:/work
+    command: python ${FILE}
