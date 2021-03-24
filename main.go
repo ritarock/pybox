@@ -11,6 +11,7 @@ import (
 
 func main() {
 	var file string
+	var dir string
 	var version float64 = 3.7
 
 	app := &cli.App{
@@ -24,6 +25,12 @@ func main() {
 				Aliases:     []string{"f"},
 				Destination: &file,
 			},
+			&cli.StringFlag{
+				Name:        "workdir",
+				Usage:       "target work directory",
+				Aliases:     []string{"d"},
+				Destination: &dir,
+			},
 			&cli.Float64Flag{
 				Name:        "version",
 				Usage:       "target version",
@@ -33,7 +40,7 @@ func main() {
 			},
 		},
 		Action: func(c *cli.Context) error {
-			run(file, version)
+			run(file, version, dir)
 			return nil
 		},
 	}
@@ -44,11 +51,11 @@ func main() {
 	}
 }
 
-func run(file string, version float64) {
+func run(file string, version float64, dir string) {
 	if version == 0 {
 		version = 3.7
 	}
-	command := createCommand(file, version)
+	command := createCommand(file, version, dir)
 
 	out, err := exec.Command("sh", "-c", command).Output()
 	if err != nil {
@@ -57,7 +64,7 @@ func run(file string, version float64) {
 	fmt.Printf(string(out))
 }
 
-func createCommand(file string, version float64) string {
+func createCommand(file string, version float64, dir string) string {
 	v := map[float64]string{
 		3.5: "py35/",
 		3.6: "py36/",
@@ -66,5 +73,9 @@ func createCommand(file string, version float64) string {
 		3.9: "py39/",
 	}
 
-	return "FILE=" + file + " docker-compose -f " + v[version] + "docker-compose.yml up"
+	if dir == "" {
+		return "CMD=" + "\"" + "python " + file + "\"" + " docker-compose -f " + v[version] + "docker-compose.yml up"
+	} else {
+		return "CMD=" + "\"" + "cd " + dir + ";pip install -r requirements.txt;python " + file + "\"" + " docker-compose -f " + v[version] + "docker-compose.yml up"
+	}
 }

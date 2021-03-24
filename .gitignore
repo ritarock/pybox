@@ -1,2 +1,3 @@
 sandbox/*
 !sandbox/sample.py
+!sandbox/sample/
